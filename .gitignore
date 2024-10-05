@@ -1,0 +1,111 @@
+stow/nvim/**/tt.*
+stow/nvim/**/.tests
+stow/nvim/**/doc/tags
+stow/nvim/**/debug
+stow/nvim/**/.repro
+stow/nvim/**/foo.*
+stow/nvim/**/*.log
+stow/nvim/**/data
+stow/nvim/**/these
+
+stow/newsboat/**/cache.db
+stow/newsboat/**/history.cmdline
+
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore backup files
+*~
+*.bak
+*.swp
+
+# Ignore logs
+*.log
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore npm debug log
+npm-debug.log*
+
+# Ignore yarn integrity file
+.yarn-integrity
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore personal configuration files that might contain sensitive information
+.netrc
+.npmrc
+.yarnrc
+.ssh/
+.gnupg/
+
+# Ignore cache directories
+.cache/
+.npm/
+.yarn/
+
+# Ignore macOS specific files
+.AppleDouble
+.LSOverride
+
+# Ignore history files
+.bash_history
+.zsh_history
+
+# Ignore any local-only files (useful for machine-specific settings)
+*.local
+
+# Ignore temporary files
+tmp/
+temp/
+
+# Ignore compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore package-lock files (uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+
+# Ignore auto-generated tag files
+tags
+TAGS
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Ruby bundle config
+.bundle/
+
+# Ignore Rust's Cargo.lock in git repo
+Cargo.lock
+
+# Ignore Go vendor directory
+vendor/
+
+# Ignore any file with .private in its name
+*.private*
+
+.DS_STORE
+stow/nvim/.config/nvim/.netrwhist
+stow/nvim/.config/nvim/plugin/packer_compiled.lua
+*.so
+*.dylib
