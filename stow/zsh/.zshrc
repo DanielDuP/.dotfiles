@@ -68,6 +68,7 @@ alias cat="bat"
 alias news="newsboat" 
 alias du="dust"
 alias find="fd"
+alias logos="elia"
 
 ## Lock the screen macos
 alias afk="open /System/Library/CoreServices/ScreenSaverEngine.app"
@@ -76,3 +77,5 @@ alias afk="open /System/Library/CoreServices/ScreenSaverEngine.app"
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

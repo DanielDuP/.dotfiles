@@ -8,6 +8,8 @@ apps=(
 	visual-studio-code
 	vlc
 	kitty
+	android-studio
+	obsidian
 )
 
 mas_apps=(

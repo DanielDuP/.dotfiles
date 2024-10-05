@@ -4,14 +4,14 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-. scripts/utils.sh
-. scripts/brew.sh
-. scripts/apps.sh
-. scripts/cli.sh
-. scripts/config.sh
-. scripts/osx.sh
-. scripts/fonts.sh
-. scripts/packages.sh
+source scripts/utils.sh
+source scripts/brew.sh
+source scripts/apps.sh
+source scripts/cli.sh
+source scripts/config.sh
+source scripts/osx.sh
+source scripts/fonts.sh
+source scripts/packages.sh
 
 cleanup() {
 	err "Last command failed"
@@ -19,7 +19,7 @@ cleanup() {
 }
 
 wait_input() {
-	read -p -r "Press enter to continue: "
+	read -p "Press enter to continue: " -r
 }
 
 main() {
@@ -40,13 +40,6 @@ main() {
 	wait_input
 	install_fonts
 	success "Finished installing fonts"
-
-	info "################################################################################"
-	info "Oh-my-zsh"
-	info "################################################################################"
-	wait_input
-	install_oh_my_zsh
-	success "Finished installing Oh-my-zsh"
 
 	info "################################################################################"
 	info "MacOS Apps"

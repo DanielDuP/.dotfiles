@@ -1,9 +1,3 @@
-taps=(
-	homebrew/cask
-	homebrew/cask-fonts
-	homebrew/core
-)
-
 packages=(
 	bat # https://github.com/sharkdp/bat
 	#bandwhich # https://github.com/imsnif/bandwhich
@@ -62,9 +56,6 @@ packages=(
 )
 
 install_packages() {
-	info "Configuring taps"
-	apply_brew_taps "${taps[@]}"
-
 	info "Installing packages..."
 	install_brew_formulas "${packages[@]}"
 

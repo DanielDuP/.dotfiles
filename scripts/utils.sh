@@ -16,3 +16,4 @@ err() {
 
 warn() {
 	printf "%s[*] %s%s\n" "$(tput setaf 3)" "$1" "$reset_color"
+}

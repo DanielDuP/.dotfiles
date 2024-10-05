@@ -2,6 +2,7 @@ install_python_packages() {
 	local pip_packages=(
 		black
 		visidata
+		elia-chat
 	)
 
 	for p in "${pip_packages[@]}"; do
