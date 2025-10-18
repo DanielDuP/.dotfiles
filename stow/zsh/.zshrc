@@ -69,9 +69,7 @@ alias ls='ls --color'
 alias vim='nvim'
 alias c='clear'
 alias cat="bat" 
-alias news="newsboat" 
 alias du="dust"
-alias logos="elia"
 
 ## Lock the screen macos
 alias afk="open /System/Library/CoreServices/ScreenSaverEngine.app"
