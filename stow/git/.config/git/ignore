@@ -19,6 +19,7 @@
 .vagrant/
 .venv
 npm-debug.log
+CLAUDE.md
 
 # OSX generated files
 .AppleDB
@@ -38,3 +39,7 @@ npm-debug.log
 Icon
 Network Trash Folder
 Temporary Items
+
+**/.claude/settings.local.json
+.claude/
+.implementation-notes/
