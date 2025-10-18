@@ -1,8 +1,15 @@
 # Basic Ghostty configuration
 font-family = JetBrainsMono Nerd Font
 font-size = 14
-theme = Everforest Dark - Hard
+theme = Everforest Dark Hard
 macos-option-as-alt = true
+
+# Background effects
+background-opacity = 0.95
+background-blur-radius = 20
+
+# Mouse behavior
+mouse-hide-while-typing = true
 
 # Terminal settings for Neovim and tmux compatibility
 term = xterm-256color
