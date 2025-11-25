@@ -123,13 +123,13 @@ alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
-alt-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
+alt-a = ['workspace A', 'exec-and-forget open -a "ChatGPT"'] # AI/Assistant (web app)
 alt-b = 'workspace B'
-alt-c = ['workspace C', 'exec-and-forget open -a "ChatGPT"']
+alt-c = ['workspace C', 'exec-and-forget open -a "Google Calendar"'] # Calendar
 alt-d = 'workspace D'
 alt-e = 'workspace E'
 alt-f = 'workspace F'
-alt-g = 'workspace G'
+alt-g = ['workspace G', 'exec-and-forget open -a "GitHub"'] # GitHub
 alt-i = 'workspace I'
 alt-m = ['workspace M', 'exec-and-forget open -a "YouTube Music"']
 alt-n = 'workspace N'
@@ -227,7 +227,4 @@ run = 'move-node-to-workspace S'
 if.app-id = 'md.obsidian'
 run = 'move-node-to-workspace O'
 
-[[on-window-detected]]
-if.app-id = 'com.openai.chat'
-run = 'move-node-to-workspace C'
 
