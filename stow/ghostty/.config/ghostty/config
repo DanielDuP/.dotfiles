@@ -3,6 +3,7 @@ font-family = JetBrainsMono Nerd Font
 font-size = 14
 theme = Everforest Dark Hard
 macos-option-as-alt = true
+macos-icon = retro
 
 # Window appearance - no title bar, no buttons
 window-decoration = none

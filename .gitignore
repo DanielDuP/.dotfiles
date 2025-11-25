@@ -11,6 +11,8 @@ stow/nvim/**/these
 stow/newsboat/**/cache.db
 stow/newsboat/**/history.cmdline
 
+# Ignore tmux runtime data
+stow/tmux/.tmux/resurrect/
 
 # Ignore OS-specific files
 .DS_Store
