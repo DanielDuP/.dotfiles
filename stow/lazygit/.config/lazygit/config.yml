@@ -1,0 +1,26 @@
+gui:
+  theme:
+    activeBorderColor:
+      - "#7e9cd8"  # kanagawa blue
+      - bold
+    inactiveBorderColor:
+      - "#727169"  # kanagawa gray
+    optionsTextColor:
+      - "#7fb4ca"  # kanagawa light blue
+    selectedLineBgColor:
+      - "#2d4f67"  # kanagawa selection
+    selectedRangeBgColor:
+      - "#2d4f67"  # kanagawa selection
+    cherryPickedCommitBgColor:
+      - "#76946a"  # kanagawa green
+    cherryPickedCommitFgColor:
+      - "#1f1f28"  # kanagawa bg
+    unstagedChangesColor:
+      - "#c34043"  # kanagawa red
+    defaultFgColor:
+      - "#dcd7ba"  # kanagawa fg
+
+git:
+  paging:
+    colorArg: always
+    pager: delta --paging=never --line-numbers --side-by-side --syntax-theme="Nord"
