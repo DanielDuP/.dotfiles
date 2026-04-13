@@ -43,3 +43,14 @@ Temporary Items
 **/.claude/settings.local.json
 .claude/
 .implementation-notes/
+
+# Project-specific editor configs
+.nvim.lua
+.nvimrc
+.exrc
+
+# Worktree directories
+.wt/
+
+# Mypy cache
+.mypy_cache/
