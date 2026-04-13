@@ -41,6 +41,7 @@ zinit snippet OMZP::git
 zinit snippet OMZP::command-not-found
 
 # completions
+fpath+=~/.zfunc
 autoload -Uz compinit && compinit
 
 zinit cdreplay -q
@@ -75,8 +76,18 @@ alias c='clear'
 alias cat="bat" 
 alias du="dust"
 
+# Custom functions
+for f in "$HOME/.config/zsh/functions/"*.zsh(N); do
+  source "$f"
+done
+
 ## Lock the screen macos
 alias afk="open /System/Library/CoreServices/ScreenSaverEngine.app"
+
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
 
 # Shell integrations
 eval "$(fzf --zsh)"
