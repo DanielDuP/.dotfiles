@@ -70,18 +70,29 @@ _wt_new() {
   wt_path="$wt_base/$name"
   session="$(_wt_session_name "$name")"
 
-  # Check if worktree already exists
+  # If worktree already exists, switch to it (create session if needed)
   if [[ -d "$wt_path" ]]; then
-    echo "wt: worktree '$name' already exists at $wt_path"
-    echo "    use: wt attach $name"
-    return 1
-  fi
+    if ! tmux has-session -t "$session" 2>/dev/null; then
+      # Worktree exists but session is dead — recreate session
+      tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "nvim .; exec zsh"
+      if [[ -n "$agent" ]]; then
+        tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent; exec zsh"
+      else
+        tmux new-window -t "$session" -n "agent" -c "$wt_path"
+      fi
+      tmux new-window -t "$session" -n "shell" -c "$wt_path"
+      tmux select-window -t "$session:agent"
+      echo "wt: recreated session for existing worktree '$name'"
+    else
+      echo "wt: switching to existing worktree '$name'"
+    fi
 
-  # Check if session already exists
-  if tmux has-session -t "$session" 2>/dev/null; then
-    echo "wt: tmux session '$session' already exists"
-    echo "    use: wt attach $name"
-    return 1
+    if [[ -n "$TMUX" ]]; then
+      tmux switch-client -t "$session"
+    else
+      tmux attach-session -t "$session"
+    fi
+    return 0
   fi
 
   # Create worktree — use existing branch if it exists, otherwise create new
