@@ -64,6 +64,13 @@ _wt_new() {
     return 1
   fi
 
+  # Prepend git username to task name
+  local git_user
+  git_user="$(git config user.name 2>/dev/null | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
+  if [[ -n "$git_user" ]]; then
+    name="$git_user/$name"
+  fi
+
   local repo_root wt_base wt_path session
   repo_root="$(_wt_repo_root)" || { echo "wt: not in a git repo"; return 1; }
   wt_base="$(_wt_base_dir)"
