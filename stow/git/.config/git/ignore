@@ -54,3 +54,11 @@ Temporary Items
 
 # Mypy cache
 .mypy_cache/
+
+# Local notes and todos
+.todo.md
+.notes.md
+
+# Local notes and todos
+.todo.md
+.notes.md

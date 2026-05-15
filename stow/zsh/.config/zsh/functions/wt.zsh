@@ -64,10 +64,24 @@ _wt_new() {
     return 1
   fi
 
-  # Prepend git username to task name
+  # Prepend git username to task name. Accept input that already carries the
+  # user-prefix (e.g. pasted full branch "DanielDuP/task") by stripping it
+  # first, case-insensitively, so it isn't doubled up on re-prepend.
   local git_user
   git_user="$(git config user.name 2>/dev/null | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
   if [[ -n "$git_user" ]]; then
+    if [[ "$name" == */* ]]; then
+      local prefix="${name%%/*}"
+      local prefix_norm
+      prefix_norm="$(echo "$prefix" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
+      if [[ "$prefix_norm" == "$git_user" ]]; then
+        name="${name#*/}"
+      fi
+    fi
+    if [[ -z "$name" ]]; then
+      echo "wt new: name is empty after stripping user prefix"
+      return 1
+    fi
     name="$git_user/$name"
   fi
 
