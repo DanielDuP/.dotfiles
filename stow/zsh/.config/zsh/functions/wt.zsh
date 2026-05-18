@@ -1,13 +1,10 @@
 # wt — git worktree + tmux session manager for parallel agentic coding
 #
 # Usage:
-#   wt new <name> [--agent claude|opencode] [--branch <base>]
+#   wt new <name> [--branch <base>] [--prompt <text>] [--detach]
 #   wt ls
 #   wt rm <name>
 #   wt help
-
-# Config
-WT_DEFAULT_AGENT="claude"
 
 # Helpers
 _wt_repo_root() {
@@ -37,30 +34,35 @@ _wt_session_name() {
   echo "wt/$(_wt_repo_name)/$1"
 }
 
+# Build the opencode launch command for the agent window. Quotes the prompt
+# safely so it survives passing through tmux's command argument.
+_wt_agent_cmd() {
+  local prompt="$1"
+  if [[ -n "$prompt" ]]; then
+    # printf %q produces a shell-safe quoted form
+    printf 'opencode --prompt %q; exec zsh' "$prompt"
+  else
+    echo 'opencode; exec zsh'
+  fi
+}
+
 # Subcommands
 _wt_new() {
-  local name="" agent="" base="HEAD"
+  local name="" base="HEAD" prompt="" detach=0
 
   # Parse args
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --agent)
-        if [[ -n "$2" && "$2" != --* ]]; then
-          agent="$2"
-          shift 2
-        else
-          agent="$WT_DEFAULT_AGENT"
-          shift
-        fi
-        ;;
       --branch) base="$2"; shift 2 ;;
+      --prompt) prompt="$2"; shift 2 ;;
+      --detach) detach=1; shift ;;
       -*) echo "wt new: unknown option $1"; return 1 ;;
       *) name="$1"; shift ;;
     esac
   done
 
   if [[ -z "$name" ]]; then
-    echo "Usage: wt new <name> [--agent claude|opencode] [--branch <base>]"
+    echo "Usage: wt new <name> [--branch <base>] [--prompt <text>] [--detach]"
     return 1
   fi
 
@@ -85,22 +87,19 @@ _wt_new() {
     name="$git_user/$name"
   fi
 
-  local repo_root wt_base wt_path session
+  local repo_root wt_base wt_path session agent_cmd
   repo_root="$(_wt_repo_root)" || { echo "wt: not in a git repo"; return 1; }
   wt_base="$(_wt_base_dir)"
   wt_path="$wt_base/$name"
   session="$(_wt_session_name "$name")"
+  agent_cmd="$(_wt_agent_cmd "$prompt")"
 
   # If worktree already exists, switch to it (create session if needed)
   if [[ -d "$wt_path" ]]; then
     if ! tmux has-session -t "$session" 2>/dev/null; then
       # Worktree exists but session is dead — recreate session
       tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "nvim .; exec zsh"
-      if [[ -n "$agent" ]]; then
-        tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent; exec zsh"
-      else
-        tmux new-window -t "$session" -n "agent" -c "$wt_path"
-      fi
+      tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent_cmd"
       tmux new-window -t "$session" -n "shell" -c "$wt_path"
       tmux select-window -t "$session:agent"
       echo "wt: recreated session for existing worktree '$name'"
@@ -108,6 +107,10 @@ _wt_new() {
       echo "wt: switching to existing worktree '$name'"
     fi
 
+    if (( detach )); then
+      echo "wt: session '$session' ready (detached)"
+      return 0
+    fi
     if [[ -n "$TMUX" ]]; then
       tmux switch-client -t "$session"
     else
@@ -134,17 +137,14 @@ _wt_new() {
   # Commands are passed directly as window processes — no shell init race.
   # "cmd; exec zsh" gives a shell back when the command exits.
   tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "nvim .; exec zsh"
-
-  if [[ -n "$agent" ]]; then
-    tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent; exec zsh"
-  else
-    tmux new-window -t "$session" -n "agent" -c "$wt_path"
-  fi
-
+  tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent_cmd"
   tmux new-window -t "$session" -n "shell" -c "$wt_path"
-
-  # Select agent window
   tmux select-window -t "$session:agent"
+
+  if (( detach )); then
+    echo "wt: session '$session' ready (detached) — path: $wt_path"
+    return 0
+  fi
 
   # Switch or attach
   if [[ -n "$TMUX" ]]; then
@@ -250,12 +250,14 @@ _wt_rm() {
 
 _wt_help() {
   cat <<'EOF'
-wt — git worktree + tmux session manager
+wt — git worktree + tmux session manager (opencode)
 
 Commands:
-  wt new <name> [--agent claude|opencode] [--branch <base>]
-      Create a worktree and tmux session with agent, lazygit, and shell windows.
+  wt new <name> [--branch <base>] [--prompt <text>] [--detach]
+      Create a worktree and tmux session with opencode, nvim, and shell windows.
       Default base is HEAD.
+      --prompt seeds opencode with an initial message.
+      --detach skips switching/attaching (session is created in background).
 
   wt ls
       List worktrees for the current repo with session status.
@@ -265,7 +267,7 @@ Commands:
 
 Tmux keybindings:
   prefix+w    Fuzzy-pick a worktree session (with delta diff preview)
-  prefix+W    Create a new worktree session (prompts for name and agent)
+  prefix+W    Create a new worktree session (prompts for name)
 EOF
 }
 
