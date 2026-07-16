@@ -38,6 +38,18 @@ Convert the task name to a branch-safe slug:
 
 Do **not** add a `username/` prefix — `wt new` handles that automatically.
 
+### 1a. Ticket-segment convention
+
+If the work is associated with a specific tracked issue, include its ID as a segment between the user prefix and the task slug by passing `<TICKET-ID>/<slug>` as the name. Format conventions:
+
+- **Linear**: raw ID, e.g. `ENG-1234/fix-rate-limit`
+- **Sentry**: `SENTRY-<short-id>`, e.g. `SENTRY-abc123/null-deref-in-export`
+- **GitHub issue**: `gh-<num>`, e.g. `gh-482/parser-crash`
+
+Use the dedicated `spawn-worktree-linear` or `spawn-worktree-sentry` skill instead when the user starts from a ticket ID — those variants auto-fetch context to seed the prompt. Use this convention here only when the user mentions a ticket in passing while spawning a manually-described task.
+
+If you're unsure whether a mentioned ID is actually the subject of the work (vs. just referenced), ask the user.
+
 ### 2. Confirm with the user
 
 Show the user:
@@ -75,7 +87,7 @@ Then return control — do **not** try to interact with the spawned agent from h
 ## Important
 
 - This skill does not commit, push, or open PRs. The spawned agent handles its own work; cleanup happens via `wt rm <name>`.
-- If `wt new` reports the worktree already exists, surface that to the user and ask whether to reuse, pick a different name, or remove the old one first. Don't silently reuse — the existing worktree may have uncommitted work.
+- `wt new` reuses existing worktrees / recreates dead sessions transparently — don't pre-check or guard against that.
 - Never drop `--detach`. If the user explicitly wants to switch into the new session, they can do so manually after spawn.
 
 $ARGUMENTS
