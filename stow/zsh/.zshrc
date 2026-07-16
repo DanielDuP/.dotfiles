@@ -10,6 +10,36 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" # This loads nvm
 [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
 
+if command -v nvm >/dev/null 2>&1; then
+  autoload -U add-zsh-hook
+
+  load-nvmrc() {
+    local nvmrc_path
+    nvmrc_path="$(nvm_find_nvmrc)"
+
+    if [[ -n "$nvmrc_path" ]]; then
+      local nvmrc_node_version
+      nvmrc_node_version="$(nvm version "$(cat "$nvmrc_path")")"
+
+      if [[ "$nvmrc_node_version" == "N/A" ]]; then
+        nvm install
+      elif [[ "$nvmrc_node_version" != "$(nvm version)" ]]; then
+        nvm use
+      fi
+    else
+      local default_node_version
+      default_node_version="$(nvm version default)"
+
+      if [[ "$default_node_version" != "N/A" && "$default_node_version" != "$(nvm version)" ]]; then
+        nvm use default
+      fi
+    fi
+  }
+
+  add-zsh-hook chpwd load-nvmrc
+  load-nvmrc
+fi
+
 # load env variables
 if [ -f "$HOME/.env" ]; then
     set -a
