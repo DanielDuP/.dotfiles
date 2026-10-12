@@ -1,11 +1,11 @@
 ---
 name: pr-review
-description: Exhaustive file-by-file PR review with written per-file and holistic review artifacts
+description: Exhaustive file-by-file PR review with written review artifacts and staged inline comments
 ---
 
 ## Overview
 
-Perform a thorough, structured code review of the current branch's PR. Produce written review artifacts: one markdown file per changed file, plus a holistic summary. All review files are written into the repository being reviewed (i.e. the repo root).
+Perform a thorough, structured code review of the current branch's PR. Produce one Markdown review per changed file, a holistic summary, and local inline comment files. Write all artifacts into the repository being reviewed.
 
 ## Workflow
 
@@ -36,7 +36,7 @@ Perform a thorough, structured code review of the current branch's PR. Produce w
      - **Testing** — Are changes tested? Are there obvious missing test cases?
      - **Error handling** — Are errors handled gracefully? Are failure modes considered?
   4. Note any cross-file considerations (e.g. "this change assumes X in `other-file.ts`").
-   5. **Write the review** to `reviews/<pr-name>/file/<filename>.md` at the repo root (the repository being reviewed), where `<filename>` mirrors the source path with `/` replaced by `__` (e.g. `src/utils/auth.ts` becomes `src__utils__auth.ts.md`).
+   5. **Write the review** to `reviews/<pr-name>/file/<filename>.md` at the repo root, where `<filename>` mirrors the source path with `/` replaced by `__` (for example, `src/utils/auth.ts` becomes `src__utils__auth.ts.md`).
 
 Each per-file review should include:
 - The file path and a short summary of what changed
@@ -56,6 +56,39 @@ After all files are reviewed, write `reviews/<pr-name>/review.md` at the repo ro
 - **Testing assessment** — Is test coverage adequate for the changes?
 - **Verdict** — Overall assessment: approve, request changes, or needs discussion. Be direct.
 
+### 5. Stage inline comments
+
+After the review findings are settled, translate actionable, line-specific findings into local files under `review-comments/` at the repository root. This step only stages comment text. Do not call GitHub or publish a review.
+
+Before writing files, inspect `review-comments/`. If it already contains files, do not mix comments from separate review runs or delete them without permission. Ask the user whether to replace the existing files, then stop until they answer.
+
+Use one file per inline comment. Mirror the source path and append the target line or inclusive range to the source filename:
+
+```text
+review-comments/<source-path>:<line>.md
+review-comments/<source-path>:<start-line>-<end-line>.md
+```
+
+For example:
+
+```text
+review-comments/members/views/events/hl7/boston_heart.py:43-44.md
+```
+
+Follow these requirements:
+
+- Use the path of the file on the right side of the PR diff, including the new path for a renamed file.
+- Target only right-side lines present in a PR diff hunk. For a range, every line must appear on the right side of one hunk.
+- Use the single target line as `<line>`. For a range, use the first and last target lines as `<start-line>-<end-line>`.
+- Write only the comment body. Do not add frontmatter, severity, file paths, line numbers, headings, or other metadata.
+- Include only findings introduced by the PR. Exclude pre-existing problems and findings that cannot be anchored to the diff.
+- Consolidate overlapping findings when one comment can explain the problem clearly.
+- Keep the tone concise, collaborative, and appropriate for a friendly staff engineer.
+- Lead with the concrete impact or failure mode. Prefer phrasing such as "Could we...?" and suggest a direction without prescribing unnecessary implementation detail.
+- Preserve meaningful Markdown while staging. The publishing skill is responsible for converting physical newlines before upload.
+
+After staging, report the number of files created and their paths. Do not invoke the `publish-draft-pr-review` skill unless the user separately asks to publish the draft.
+
 ## Guidelines
 
 - Be thorough but not pedantic. Focus energy on things that matter.
@@ -63,3 +96,4 @@ After all files are reviewed, write `reviews/<pr-name>/review.md` at the repo ro
 - If something looks wrong but you are not sure, say so — flag it as a question rather than a defect.
 - Give credit where due. If something is well-done, note it briefly.
 - All review files are markdown (`.md`).
+- Never publish or submit a GitHub review as part of this skill.
