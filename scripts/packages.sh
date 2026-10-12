@@ -28,7 +28,7 @@ packages=(
 	#mas  # https://github.com/mas-cli/mas
 	#minikube
 	neovim
-	node
+	fnm
 	#nmap
 	openjdk
 	#openssl

@@ -9,7 +9,6 @@ apps=(
 	vlc
 	kitty
 	android-studio
-	obsidian
 )
 
 mas_apps=(

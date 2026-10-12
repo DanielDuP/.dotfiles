@@ -9,6 +9,7 @@ source scripts/brew.sh
 source scripts/apps.sh
 source scripts/cli.sh
 source scripts/config.sh
+source scripts/mcp.sh
 source scripts/osx.sh
 source scripts/fonts.sh
 source scripts/packages.sh
@@ -81,6 +82,9 @@ main() {
 
 	stow_dotfiles
 	success "Finished stowing dotfiles"
+
+	setup_mcp_servers
+	success "Finished registering MCP servers with Codex and Claude Code"
 
 	info "################################################################################"
 	info "Crating development folders"
