@@ -14,9 +14,8 @@ mkdir -p "$cache_dir" || exit 0
 # Replace slashes so the session name maps to a single file.
 cache_file="$cache_dir/${session//\//__}"
 
-# Resolve worktree path via the nvim window's pane cwd. The pane was launched
-# with `tmux new-session -c $wt_path -n nvim "nvim .; exec zsh"`, so its OS-level
-# cwd stays at the worktree root regardless of nvim's internal :cd.
+# Resolve worktree path via the nvim window's pane cwd. Its OS-level cwd stays
+# at the worktree root regardless of nvim's internal :cd.
 wt_path="$(tmux display-message -p -t "${session}:nvim" '#{pane_current_path}' 2>/dev/null)"
 [[ -z "$wt_path" || ! -d "$wt_path" ]] && exit 0
 

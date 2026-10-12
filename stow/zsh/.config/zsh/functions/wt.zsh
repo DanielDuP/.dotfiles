@@ -31,19 +31,47 @@ _wt_base_dir() {
 }
 
 _wt_session_name() {
-  echo "wt/$(_wt_repo_name)/$1"
+  local repo_name="$(_wt_repo_name)"
+  echo "wt/${repo_name//./_}/$1"
 }
 
-# Build the opencode launch command for the agent window. Quotes the prompt
-# safely so it survives passing through tmux's command argument.
+# Run a command in an interactive shell so it inherits the zshrc environment.
+_wt_interactive_cmd() {
+  printf 'exec zsh -ic %q' "$1"
+}
+
+# Build the opencode launch command for the agent window. Quotes both the
+# prompt and interactive command so they survive tmux's command argument.
 _wt_agent_cmd() {
-  local prompt="$1"
+  local prompt="$1" command
   if [[ -n "$prompt" ]]; then
-    # printf %q produces a shell-safe quoted form
-    printf 'opencode --prompt %q; exec zsh' "$prompt"
+    command="$(printf 'opencode --prompt %q; exec zsh' "$prompt")"
   else
-    echo 'opencode; exec zsh'
+    command='opencode; exec zsh'
   fi
+  _wt_interactive_cmd "$command"
+}
+
+# Run trusted, repository-local setup before opening the worktree. The hook is
+# kept under .git so checked-out branches cannot add or modify it.
+_wt_run_setup() {
+  local repo_root="$1" wt_path="$2" setup_script="$1/.git/wt-setup"
+  [[ -f "$setup_script" ]] || return 0
+
+  if [[ ! -x "$setup_script" ]]; then
+    echo "wt: setup script is not executable: $setup_script"
+    echo "    run: chmod +x $setup_script"
+    return 1
+  fi
+
+  echo "wt: running setup: $setup_script"
+  (
+    cd "$wt_path" || return 1
+    WT_MAIN_WORKTREE="$repo_root" WT_WORKTREE="$wt_path" "$setup_script"
+  ) || {
+    echo "wt: setup failed; fix the issue and rerun wt new"
+    return 1
+  }
 }
 
 # Subcommands
@@ -87,21 +115,23 @@ _wt_new() {
     name="$git_user/$name"
   fi
 
-  local repo_root wt_base wt_path session agent_cmd
+  local repo_root wt_base wt_path session nvim_cmd agent_cmd
   repo_root="$(_wt_repo_root)" || { echo "wt: not in a git repo"; return 1; }
   wt_base="$(_wt_base_dir)"
   wt_path="$wt_base/$name"
   session="$(_wt_session_name "$name")"
+  nvim_cmd="$(_wt_interactive_cmd 'nvim .; exec zsh')"
   agent_cmd="$(_wt_agent_cmd "$prompt")"
 
   # If worktree already exists, switch to it (create session if needed)
   if [[ -d "$wt_path" ]]; then
     if ! tmux has-session -t "$session" 2>/dev/null; then
       # Worktree exists but session is dead — recreate session
-      tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "nvim .; exec zsh"
+      _wt_run_setup "$repo_root" "$wt_path" || return 1
+      tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "$nvim_cmd"
       tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent_cmd"
       tmux new-window -t "$session" -n "shell" -c "$wt_path"
-      tmux select-window -t "$session:agent"
+      tmux select-window -t "${session}:agent"
       echo "wt: recreated session for existing worktree '$name'"
     else
       echo "wt: switching to existing worktree '$name'"
@@ -133,13 +163,15 @@ _wt_new() {
     fi
   fi
 
+  _wt_run_setup "$repo_root" "$wt_path" || return 1
+
   # Create tmux session with 3 windows: nvim, agent, shell
-  # Commands are passed directly as window processes — no shell init race.
+  # Interactive launch shells load zshrc before starting nvim and opencode.
   # "cmd; exec zsh" gives a shell back when the command exits.
-  tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "nvim .; exec zsh"
+  tmux new-session -d -s "$session" -c "$wt_path" -n "nvim" "$nvim_cmd"
   tmux new-window -t "$session" -n "agent" -c "$wt_path" "$agent_cmd"
   tmux new-window -t "$session" -n "shell" -c "$wt_path"
-  tmux select-window -t "$session:agent"
+  tmux select-window -t "${session}:agent"
 
   if (( detach )); then
     echo "wt: session '$session' ready (detached) — path: $wt_path"
@@ -168,7 +200,7 @@ _wt_ls() {
   printf "%-45s %-45s %-10s %s\n" "NAME" "BRANCH" "SESSION" "PATH"
   printf "%-45s %-45s %-10s %s\n" "----" "------" "-------" "----"
 
-  local wt_path wt_name branch session status
+  local wt_path wt_name branch session session_status
   git -C "$repo_root" worktree list --porcelain | grep '^worktree ' | while read -r _ wt_path; do
     # Only show worktrees under our .wt base dir
     [[ "$wt_path" == "$wt_base"/* ]] || continue
@@ -177,12 +209,12 @@ _wt_ls() {
     session="$(_wt_session_name "$wt_name")"
 
     if tmux has-session -t "$session" 2>/dev/null; then
-      status="alive"
+      session_status="alive"
     else
-      status="dead"
+      session_status="dead"
     fi
 
-    printf "%-45s %-45s %-10s %s\n" "$wt_name" "$branch" "$status" "$wt_path"
+    printf "%-45s %-45s %-10s %s\n" "$wt_name" "$branch" "$session_status" "$wt_path"
   done
 }
 
@@ -258,6 +290,8 @@ Commands:
       Default base is HEAD.
       --prompt seeds opencode with an initial message.
       --detach skips switching/attaching (session is created in background).
+      Before tmux starts, runs .git/wt-setup when that local executable exists.
+      Setup runs from the new worktree with WT_MAIN_WORKTREE and WT_WORKTREE set.
 
   wt ls
       List worktrees for the current repo with session status.

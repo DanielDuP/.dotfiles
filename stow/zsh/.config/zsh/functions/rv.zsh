@@ -1,23 +1,19 @@
 # rv — git worktree + tmux session manager for reviewing remote branches
 #
 # Usage:
-#   rv new <branch> [--agent claude|opencode]
+#   rv new <branch> [--agent cursor-agent|claude|opencode]
 #   rv ls
 #   rv rm <name>
 #   rv help
 
 # Config
-RV_DEFAULT_AGENT="claude"
+RV_DEFAULT_AGENT="cursor-agent"
 
 # Helpers
 _rv_repo_root() {
   local git_common_dir
-  git_common_dir="$(git rev-parse --git-common-dir 2>/dev/null)" || return 1
-  if [[ "$git_common_dir" == ".git" ]]; then
-    git rev-parse --show-toplevel
-  else
-    dirname "$git_common_dir"
-  fi
+  git_common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
+  dirname "$git_common_dir"
 }
 
 _rv_repo_name() {
@@ -36,7 +32,7 @@ _rv_session_name() {
 
 # Subcommands
 _rv_new() {
-  local branch="" agent="" name=""
+  local branch="" agent="$RV_DEFAULT_AGENT" name=""
 
   # Parse args
   while [[ $# -gt 0 ]]; do
@@ -56,7 +52,7 @@ _rv_new() {
   done
 
   if [[ -z "$branch" ]]; then
-    echo "Usage: rv new <branch> [--agent claude|opencode]"
+    echo "Usage: rv new <branch> [--agent cursor-agent|claude|opencode]"
     return 1
   fi
 
@@ -79,7 +75,7 @@ _rv_new() {
         tmux new-window -t "$session" -n "agent" -c "$rv_path"
       fi
       tmux new-window -t "$session" -n "shell" -c "$rv_path"
-      tmux select-window -t "$session:agent"
+      tmux select-window -t "${session}:agent"
       echo "rv: recreated session for existing review '$name'"
     else
       echo "rv: switching to existing review '$name'"
@@ -134,7 +130,7 @@ _rv_new() {
   tmux new-window -t "$session" -n "shell" -c "$rv_path"
 
   # Select agent window
-  tmux select-window -t "$session:agent"
+  tmux select-window -t "${session}:agent"
 
   # Switch or attach
   if [[ -n "$TMUX" ]]; then
@@ -158,7 +154,7 @@ _rv_ls() {
   printf "%-45s %-45s %-10s %s\n" "NAME" "BRANCH" "SESSION" "PATH"
   printf "%-45s %-45s %-10s %s\n" "----" "------" "-------" "----"
 
-  local wt_path wt_name branch session status
+  local wt_path wt_name branch session session_status
   git -C "$repo_root" worktree list --porcelain | grep '^worktree ' | while read -r _ wt_path; do
     [[ "$wt_path" == "$rv_base"/* ]] || continue
     wt_name="${wt_path#$rv_base/}"
@@ -166,12 +162,12 @@ _rv_ls() {
     session="$(_rv_session_name "$wt_name")"
 
     if tmux has-session -t "$session" 2>/dev/null; then
-      status="alive"
+      session_status="alive"
     else
-      status="dead"
+      session_status="dead"
     fi
 
-    printf "%-45s %-45s %-10s %s\n" "$wt_name" "$branch" "$status" "$wt_path"
+    printf "%-45s %-45s %-10s %s\n" "$wt_name" "$branch" "$session_status" "$wt_path"
   done
 }
 
@@ -242,9 +238,9 @@ _rv_help() {
 rv — git worktree + tmux session manager for reviews
 
 Commands:
-  rv new <branch> [--agent claude|opencode]
+  rv new <branch> [--agent cursor-agent|claude|opencode]
       Fetch a remote branch, create a worktree tracking it, and open a
-      tmux session with nvim, agent, and shell windows.
+      tmux session with nvim, agent, and shell windows. Defaults to Cursor Agent.
 
   rv ls
       List review worktrees for the current repo with session status.
@@ -253,8 +249,8 @@ Commands:
       Remove review worktree, kill session, delete local tracking branch.
 
 Tmux keybindings:
-  prefix+r    Create a new review session (prompts for branch and agent)
-  prefix+R    Fuzzy-pick a review session (with delta diff preview)
+  prefix+R    Create a new review session (prompts for branch)
+  prefix+r    Fuzzy-pick a review session (with delta diff preview)
 EOF
 }
 
