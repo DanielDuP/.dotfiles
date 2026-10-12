@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+set -eu
+
+if [[ -z "${TMUX:-}" || -z "${TMUX_PANE:-}" ]]; then
+  print -u2 -- 'agent-id: not running inside a tmux pane'
+  exit 1
+fi
+
+identity=$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}')
+[[ -n "$identity" ]] || { print -u2 -- 'agent-id: could not resolve tmux session'; exit 1; }
+print -r -- "$identity"

@@ -1,0 +1,55 @@
+#!/usr/bin/env zsh
+
+set -eu
+
+usage() {
+  print -u2 -- 'Usage: agent-post <thread-id> [message]'
+  print -u2 -- '       print -r -- <message> | agent-post <thread-id>'
+  exit 1
+}
+
+(( $# >= 1 && $# <= 2 )) || usage
+thread_id="$1"
+[[ -n "$thread_id" && "$thread_id" != *[^a-zA-Z0-9_.-]* ]] || {
+  print -u2 -- "agent-post: invalid thread ID '$thread_id'"
+  exit 1
+}
+
+if (( $# == 2 )); then
+  body="$2"
+elif [[ ! -t 0 ]]; then
+  body=$(<&0)
+else
+  print -u2 -- 'agent-post: provide a message argument or pipe message content on stdin'
+  exit 1
+fi
+[[ -n "$body" ]] || { print -u2 -- 'agent-post: message cannot be empty'; exit 1; }
+
+sender=$(agent-id) || exit
+root="${AGENT_BUS_ROOT:-${XDG_STATE_HOME:-$HOME/.local/state}/agent-bus}"
+directory="$root/threads/$thread_id"
+[[ -f "$directory/thread.md" ]] || { print -u2 -- "agent-post: thread not found: $thread_id"; exit 1; }
+
+zmodload zsh/datetime
+epoch_id="${EPOCHREALTIME//./}"
+created_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+temporary=$(mktemp "$directory/messages/.message.XXXXXX")
+trap 'rm -f "$temporary"' EXIT INT TERM
+unique="${temporary:t}"
+unique="${unique#.message.}"
+message_id="$epoch_id-$unique"
+{
+  print -r -- '---'
+  print -r -- 'protocol_version: 2'
+  print -r -- "message_id: $message_id"
+  print -r -- "thread_id: $thread_id"
+  print -r -- "from: $sender"
+  print -r -- "created_at: $created_at"
+  print -r -- '---'
+  print
+  print -r -- "$body"
+} > "$temporary"
+message="$directory/messages/$message_id.md"
+mv "$temporary" "$message"
+trap - EXIT INT TERM
+print -r -- "$message"

@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+set -eu
+
+root="${AGENT_BUS_ROOT:-${XDG_STATE_HOME:-$HOME/.local/state}/agent-bus}"
+threads=("$root/threads"/*(/N))
+
+if (( ${#threads[@]} == 0 )); then
+  print -r -- 'No threads'
+  exit 0
+fi
+
+printf '%-48s %-20s %-25s %s\n' THREAD CREATED BY SUBJECT
+for directory in ${(On)threads}; do
+  metadata="$directory/thread.md"
+  [[ -f "$metadata" ]] || continue
+  created=$(sed -n 's/^created_at: //p' "$metadata")
+  creator=$(sed -n 's/^created_by: //p' "$metadata")
+  subject=$(sed -n 's/^subject: //p' "$metadata")
+  printf '%-48s %-20s %-25s %s\n' "${directory:t}" "$created" "$creator" "$subject"
+done

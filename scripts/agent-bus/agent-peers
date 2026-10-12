@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+set -eu
+
+current=""
+if [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" ]]; then
+  current=$(agent-id)
+fi
+
+printf '%-55s %s\n' SESSION STATUS
+tmux list-sessions -F '#{session_name}' 2>/dev/null | sort -u | while IFS= read -r session; do
+  [[ -n "$session" ]] || continue
+  availability=live
+  [[ "$session" == "$current" ]] && availability=you
+  printf '%-55s %s\n' "$session" "$availability"
+done
