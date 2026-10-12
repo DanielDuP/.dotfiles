@@ -134,8 +134,8 @@ alt-g = ['workspace G', 'exec-and-forget open -a "GitHub"'] # GitHub
 alt-i = 'workspace I'
 alt-m = ['workspace M', 'exec-and-forget open -a "YouTube Music"']
 alt-n = 'workspace N'
-alt-o = ['workspace O', 'exec-and-forget open -a "Obsidian"']
-alt-p = 'workspace P'
+alt-o = ['workspace O', 'exec-and-forget open -a "Onyx"']
+alt-p = ['workspace P', 'exec-and-forget open -a "Linear"']
 alt-q = 'workspace Q'
 alt-r = 'workspace R'
 alt-s = ['workspace S', 'exec-and-forget open -a "Slack"']
@@ -225,7 +225,5 @@ if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
-if.app-id = 'md.obsidian'
+if.app-id = 'com.google.Chrome.app.lhpeneibmkdjdohnaficfkllclbkcedf'
 run = 'move-node-to-workspace O'
-
-
