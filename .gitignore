@@ -72,6 +72,11 @@ npm-debug.log*
 
 # Ignore any local-only files (useful for machine-specific settings)
 *.local
+!stow/agent-tools/.local/
+!stow/agent-tools/.local/bin/
+!stow/agent-skills/
+!stow/agent-skills/.claude/
+!stow/agent-skills/.claude/skills
 
 # Ignore temporary files
 tmp/
